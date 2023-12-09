@@ -31,7 +31,7 @@ async def set_hvac_mode(self, entity_id, hvac_mode):
 
 async def get_current_offset(self, entity_id):
     """Get current offset."""
-    return float(str(self.hass.states.get(entity_id).attributes.get("offset", 0)))
+    return float(str(self.hass.states.get(entity_id).attributes.get("offset", 0)/100))
 
 
 async def get_offset_steps(self, entity_id):
@@ -41,22 +41,26 @@ async def get_offset_steps(self, entity_id):
 
 async def get_min_offset(self, entity_id):
     """Get min offset."""
-    return -6
+    return -5
 
 
 async def get_max_offset(self, entity_id):
     """Get max offset."""
-    return 6
+    return 5
 
 
 async def set_offset(self, entity_id, offset):
     """Set new target offset."""
+    offset=offset*100
     await self.hass.services.async_call(
         "deconz",
         "configure",
         {"entity": entity_id, "field": "/config", "data": {"offset": offset}},
         blocking=True,
         context=self.context,
+    )
+    _LOGGER.debug(
+        f"better_thermostat {self.name}: Deconz sending {offset} to entity {entity_id} "
     )
     self.real_trvs[entity_id]["last_calibration"] = offset
 
